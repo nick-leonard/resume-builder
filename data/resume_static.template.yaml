@@ -1,0 +1,14 @@
+# ANONYMIZED EXAMPLE — checked into git. Copy to resume_static.yaml (gitignored)
+# and replace with your real details. NEVER sent to the LLM; merged at render time.
+contact:
+  name: Your Name
+  phone: "000-000-0000"
+  email: you@example.com
+  linkedin: www.linkedin.com/in/yourhandle
+  location: Metro Area
+
+education:
+  - school: University Name
+    location: City, ST
+    degree: Degree, Field
+    date: Mon YYYY

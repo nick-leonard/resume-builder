@@ -1,0 +1,30 @@
+# Private by default. This folder also holds real resume data, applications,
+# interview notes and writing samples, so only the paths allowed below are
+# ever committed. To publish a new file, add it here on purpose.
+/*
+!/.gitignore
+!/README.md
+!/AGENTS.md
+!/CLAUDE.md
+!/LICENSE
+!/requirements.txt
+!/generate_resume.py
+
+!/prompts/
+/prompts/standing_framings.md
+
+!/scripts/
+!/tests/
+
+!/data/
+/data/*
+!/data/*.template.yaml
+
+!/docs/
+/docs/*
+!/docs/resume-tailoring-system-design.md
+!/docs/Resume_Tailoring_Workflow_and_Prompt.md
+
+__pycache__/
+*.pyc
+.DS_Store

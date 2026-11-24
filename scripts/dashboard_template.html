@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Job Search Dashboard</title>
+<style>
+:root {
+  color-scheme: light;
+  --bg: #f6f6f4; --surface: #fcfcfb; --surface-2: #f0f0ed; --border: #e0dfda;
+  --text: #0b0b0b; --text-2: #52514e; --text-3: #6f6e69;
+  --series: #2a78d6; --link: #1d62b5;
+  --good: #16784f; --warn: #8f5f00; --critical: #b83232;
+  --good-bg: #e3f3ec; --warn-bg: #f9efd9; --critical-bg: #fae6e6; --info-bg: #e6eefa;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+    --bg: #121211; --surface: #1a1a19; --surface-2: #242422; --border: #33332f;
+    --text: #f0efec; --text-2: #c3c2b7; --text-3: #9b9a90;
+    --series: #3987e5; --link: #7cb2f2;
+    --good: #5fd0a2; --warn: #e6b856; --critical: #f09090;
+    --good-bg: #17352a; --warn-bg: #3a2e12; --critical-bg: #3f1f1f; --info-bg: #1b2c44;
+  }
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--text); font: 14px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, sans-serif; }
+a { color: var(--link); text-decoration: none; }
+a:hover { text-decoration: underline; }
+button { font: inherit; color: inherit; }
+main { max-width: 1720px; margin: 0 auto; padding: 24px; }
+header { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; flex-wrap: wrap; margin-bottom: 18px; }
+h1 { font-size: 22px; margin: 0; letter-spacing: -.01em; }
+h2 { font-size: 15px; margin: 0 0 12px; }
+h3 { font-size: 12px; margin: 0 0 8px; color: var(--text-2); font-weight: 600; }
+.muted { color: var(--text-3); }
+.small { font-size: 12px; }
+section { margin-bottom: 26px; }
+.panel { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 14px; }
+
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; margin-bottom: 26px; }
+.tile .value { font-size: 28px; font-weight: 650; line-height: 1.15; font-variant-numeric: tabular-nums; }
+.tile .label { color: var(--text-2); font-size: 12px; }
+
+.attention { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.attention-item { display: grid; grid-template-columns: 30px 1fr; gap: 10px; width: 100%; padding: 9px 4px; background: none; border: 0; border-top: 1px solid var(--border); text-align: left; cursor: pointer; }
+.attention-item:first-of-type { border-top: 0; }
+.attention-item:hover { background: var(--surface-2); }
+.attention-item strong { font-weight: 600; }
+.attention-item .what { display: block; color: var(--text-2); }
+.when { font-weight: 600; font-variant-numeric: tabular-nums; }
+.empty { color: var(--text-3); padding: 8px 4px; }
+
+.logo { width: 30px; height: 30px; border-radius: 7px; object-fit: contain; background: #fff; border: 1px solid var(--border); flex: none; display: block; }
+.monogram { width: 30px; height: 30px; border-radius: 7px; background: var(--surface-2); color: var(--text-2); border: 1px solid var(--border); display: grid; place-items: center; font-size: 11px; font-weight: 700; flex: none; }
+
+.board { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(178px, 1fr); gap: 10px; overflow-x: auto; padding-bottom: 8px; }
+.column { background: var(--surface-2); border-radius: 10px; padding: 8px; min-height: 90px; }
+.column-head { display: flex; justify-content: space-between; font-weight: 600; font-size: 12px; padding: 2px 4px 8px; color: var(--text-2); }
+.column-cards { display: flex; flex-direction: column; gap: 7px; max-height: 470px; overflow-y: auto; }
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 9px; text-align: left; cursor: pointer; width: 100%; }
+.card:hover { border-color: var(--series); }
+.card-top { display: flex; gap: 8px; align-items: center; }
+.card-company { font-weight: 600; line-height: 1.2; }
+.card-role { color: var(--text-2); font-size: 12px; margin: 5px 0 6px; line-height: 1.3; }
+.chips { display: flex; flex-wrap: wrap; gap: 4px; }
+.chip { font-size: 11px; line-height: 1.5; padding: 0 6px; border-radius: 5px; background: var(--surface-2); color: var(--text-2); white-space: nowrap; }
+.column .card .chip { background: var(--bg); }
+.chip.good { background: var(--good-bg); color: var(--good); }
+.chip.warn { background: var(--warn-bg); color: var(--warn); }
+.chip.critical { background: var(--critical-bg); color: var(--critical); }
+.chip.info { background: var(--info-bg); color: var(--link); }
+
+.filters { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 10px; }
+input[type=search], select { font: inherit; color: inherit; background: var(--surface); border: 1px solid var(--border); border-radius: 7px; padding: 5px 8px; }
+input[type=search] { min-width: 230px; }
+.table-wrap { overflow-x: auto; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; }
+table { border-collapse: collapse; width: 100%; }
+#table th, #table td { padding: 8px 10px; border-bottom: 1px solid var(--border); text-align: left; vertical-align: top; }
+#table th { font-size: 12px; color: var(--text-2); font-weight: 600; white-space: nowrap; cursor: pointer; position: sticky; top: 0; background: var(--surface); user-select: none; }
+#table tbody tr { cursor: pointer; }
+#table tbody tr:hover { background: var(--surface-2); }
+#table tbody tr:last-child td { border-bottom: 0; }
+.co { display: flex; gap: 8px; align-items: center; min-width: 170px; font-weight: 600; line-height: 1.2; }
+.num { font-variant-numeric: tabular-nums; }
+.w-gct { min-width: 130px; max-width: 170px; }
+.w-pay { min-width: 110px; max-width: 150px; }
+.w-links { white-space: nowrap; }
+.w-next { min-width: 210px; }
+.w-role { min-width: 170px; }
+.nowrap { white-space: nowrap; }
+
+.health { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.funnel-row { display: grid; grid-template-columns: 96px 1fr 26px; gap: 8px; align-items: center; padding: 4px 0; }
+.funnel-track { height: 14px; display: flex; align-items: center; }
+.funnel-bar { height: 12px; background: var(--series); border-radius: 0 4px 4px 0; min-width: 2px; }
+.mini th, .mini td { padding: 4px 6px 4px 0; text-align: left; border-bottom: 1px solid var(--border); font-size: 13px; }
+.mini th { color: var(--text-2); font-size: 12px; font-weight: 600; }
+.mini td + td, .mini th + th { text-align: right; font-variant-numeric: tabular-nums; }
+.mini tr:last-child td { border-bottom: 0; }
+.feedback { padding: 7px 0; border-top: 1px solid var(--border); }
+.feedback:first-of-type { border-top: 0; }
+.checks ul { margin: 0 0 12px; padding-left: 18px; }
+.checks li { margin: 3px 0; }
+.link-btn { background: none; border: 0; padding: 0; color: var(--link); cursor: pointer; text-align: left; }
+.link-btn:hover { text-decoration: underline; }
+.check-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; }
+
+#drawer-bg { position: fixed; inset: 0; background: rgba(0,0,0,.35); display: none; z-index: 5; }
+#drawer { position: fixed; top: 0; right: 0; bottom: 0; width: min(560px, 100vw); background: var(--surface); border-left: 1px solid var(--border); padding: 20px; overflow-y: auto; transform: translateX(100%); transition: transform .15s ease; z-index: 6; visibility: hidden; }
+#drawer.open { transform: none; visibility: visible; }
+#drawer-bg.open { display: block; }
+.drawer-head { display: flex; gap: 12px; align-items: flex-start; margin-bottom: 12px; }
+.drawer-head .logo, .drawer-head .monogram { width: 44px; height: 44px; font-size: 14px; border-radius: 9px; }
+.drawer-head h2 { font-size: 18px; margin: 0; }
+.close { margin-left: auto; background: none; border: 1px solid var(--border); border-radius: 7px; padding: 2px 9px; cursor: pointer; }
+.drawer-section { margin-top: 18px; }
+.facts { display: grid; grid-template-columns: 110px 1fr; gap: 5px 10px; }
+.facts dt { color: var(--text-3); }
+.facts dd { margin: 0; }
+.callout { padding: 9px 11px; border-radius: 8px; margin-top: 10px; }
+.callout.warn { background: var(--warn-bg); color: var(--warn); }
+.callout.next { background: var(--info-bg); }
+.timeline { list-style: none; margin: 0; padding: 0; }
+.timeline li { display: grid; grid-template-columns: 76px 1fr; gap: 10px; padding: 7px 0; border-top: 1px solid var(--border); }
+.timeline li:first-child { border-top: 0; }
+.timeline .future { font-weight: 600; color: var(--link); }
+.docs { list-style: none; margin: 0; padding: 0; }
+.docs li { padding: 2px 0; word-break: break-word; }
+@media (max-width: 1050px) { .attention, .health { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>Job Search Dashboard</h1>
+    <div class="muted small" id="built"></div>
+  </header>
+  <div class="tiles" id="tiles"></div>
+  <section>
+    <h2>Needs attention</h2>
+    <div class="attention">
+      <div class="panel"><h3>Coming up</h3><div id="upcoming"></div></div>
+      <div class="panel"><h3>Your move</h3><div id="your-move"></div></div>
+      <div class="panel"><h3>Waiting on others, longest first</h3><div id="waiting"></div></div>
+    </div>
+  </section>
+  <section>
+    <h2>Pipeline</h2>
+    <div class="board" id="board"></div>
+  </section>
+  <section>
+    <h2>All opportunities</h2>
+    <div class="filters">
+      <input type="search" id="f-q" placeholder="Search company, role, person" aria-label="Search">
+      <select id="f-stage" aria-label="Stage"></select>
+      <select id="f-type" aria-label="Type"><option value="">Jobs and contracts</option><option value="job">Jobs</option><option value="contract">Contracts</option></select>
+      <select id="f-mode" aria-label="Work mode"><option value="">Any work mode</option><option>Remote</option><option>Hybrid</option><option>On-site</option><option>Unknown</option></select>
+      <label class="small"><input type="checkbox" id="f-closed"> Show closed</label>
+      <span class="muted small" id="f-count"></span>
+    </div>
+    <div class="table-wrap"><table id="table"><thead><tr id="table-head"></tr></thead><tbody id="table-body"></tbody></table></div>
+  </section>
+  <section>
+    <h2>Search health</h2>
+    <div class="health">
+      <div class="panel"><h3>How far opportunities have reached</h3><div id="funnel"></div></div>
+      <div class="panel"><h3>By source</h3><table class="mini" id="sources"></table></div>
+      <div class="panel"><h3>Feedback so far</h3><div id="feedback"></div></div>
+    </div>
+  </section>
+  <section class="checks">
+    <h2>Data to check</h2>
+    <div class="panel check-grid" id="checks"></div>
+  </section>
+</main>
+<div id="drawer-bg"></div>
+<aside id="drawer" role="dialog" aria-modal="true" aria-label="Opportunity details"></aside>
+<script>
+const DATA = /*__DATA__*/null;
+const STAGES = DATA.stages, OPPS = DATA.opportunities;
+const BY_SLUG = Object.fromEntries(OPPS.map(o => [o.slug, o]));
+const DAY = 86400000;
+const pad = n => String(n).padStart(2, "0");
+const now = new Date();
+const TODAY = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+const QUIET_DAYS = 10;
+
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const parseDay = s => { const [y, m, d] = s.split("-").map(Number); return new Date(y, m - 1, d); };
+const daysBetween = (a, b) => Math.round((parseDay(b) - parseDay(a)) / DAY);
+const fmtDate = s => s ? parseDay(s).toLocaleDateString("en-US", { month: "short", day: "numeric" }) : "";
+const fmtDow = s => parseDay(s).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
+
+OPPS.forEach(o => {
+  const past = o.events.filter(e => e.date <= TODAY);
+  o.lastActivity = past.length ? past[past.length - 1].date : null;
+  o.quietDays = o.lastActivity ? daysBetween(o.lastActivity, TODAY) : null;
+  o.applied = (o.events.find(e => e.kind === "applied" || e.kind === "submitted") || {}).date || null;
+  o.closed = o.stage === "Closed";
+  o.isLead = o.stage === STAGES[0];
+  o.reached = STAGES.indexOf(o.closed ? (o.closed_from || STAGES[0]) : o.stage);
+  o.search = [o.company, o.role, o.via, o.industry, o.location, o.neighborhood, o.status_note,
+    ...o.contacts.map(c => c.name)].join(" ").toLowerCase();
+});
+const active = OPPS.filter(o => !o.closed);
+
+function logoHtml(o) {
+  const letters = o.company.replace(/[^A-Za-z0-9 ]/g, "").split(/\s+/).filter(Boolean).slice(0, 2).map(w => w[0]).join("").toUpperCase();
+  const mono = `<div class="monogram" aria-hidden="true">${esc(letters)}</div>`;
+  return o.logo_href ? `<img class="logo" alt="" src="${esc(o.logo_href)}" data-mono="${esc(letters)}">` : mono;
+}
+document.addEventListener("error", e => {
+  if (e.target.tagName === "IMG" && e.target.dataset.mono !== undefined) {
+    const m = document.createElement("div");
+    m.className = "monogram"; m.textContent = e.target.dataset.mono;
+    e.target.replaceWith(m);
+  }
+}, true);
+
+function modeChip(o) {
+  const cls = { Remote: "good", Hybrid: "info", "On-site": "warn" }[o.work_mode] || "";
+  return `<span class="chip ${cls}">${esc(o.work_mode)}</span>`;
+}
+function distanceText(o) {
+  if (o.gct_miles == null) return o.work_mode === "Remote" ? "" : "Unknown";
+  return `${o.gct_miles} mi`;
+}
+const verifyChip = o => o.needs_verify ? `<span class="chip warn" title="${esc(o.needs_verify)}">&#9888; Check</span>` : "";
+const confChip = o => o.confidential ? `<span class="chip critical">Confidential</span>` : "";
+const open = slug => `data-open="${esc(slug)}"`;
+
+function renderTiles() {
+  const next7 = active.flatMap(o => o.events).filter(e => e.date > TODAY && daysBetween(TODAY, e.date) <= 7).length;
+  const inPlay = active.filter(o => !o.isLead).length;
+  const yourMove = yourMoveList().length;
+  const quiet = waitingList().filter(o => o.quietDays >= QUIET_DAYS).length;
+  const applied = OPPS.filter(o => o.reached >= 1).length;
+  const tiles = [[inPlay, "In play now"], [next7, "Scheduled in the next 7 days"], [yourMove, "Your move"],
+    [quiet, `Quiet for ${QUIET_DAYS}+ days`], [applied, "Applied or further, all time"]];
+  document.getElementById("tiles").innerHTML = tiles.map(([v, l]) =>
+    `<div class="panel tile"><div class="value">${v}</div><div class="label">${esc(l)}</div></div>`).join("");
+}
+
+const yourMoveList = () => active.filter(o => o.next_owner === "me" && (!o.isLead || o.needs_verify))
+  .sort((a, b) => (a.isLead - b.isLead) || (a.next_date || "9").localeCompare(b.next_date || "9"));
+const waitingList = () => active.filter(o => o.next_owner === "them")
+  .sort((a, b) => (b.quietDays ?? 0) - (a.quietDays ?? 0));
+
+function attentionRow(o, whenHtml, whatText) {
+  return `<button class="attention-item" ${open(o.slug)}>${logoHtml(o)}<span><strong>${esc(o.company)}</strong> ${whenHtml}
+    <span class="what">${esc(whatText)}</span></span></button>`;
+}
+function renderAttention() {
+  const upcoming = active.flatMap(o => o.events.filter(e => e.date > TODAY).map(e => ({ o, e })))
+    .sort((a, b) => a.e.date.localeCompare(b.e.date));
+  document.getElementById("upcoming").innerHTML = upcoming.map(({ o, e }) =>
+    attentionRow(o, `<span class="when">${esc(fmtDow(e.date))}${e.time ? ", " + esc(e.time) : ""}</span>`, e.title)).join("")
+    || `<div class="empty">Nothing scheduled.</div>`;
+  document.getElementById("your-move").innerHTML = yourMoveList().map(o =>
+    attentionRow(o, o.next_date ? `<span class="when">by ${esc(fmtDate(o.next_date))}</span>` : "", o.next_action)).join("")
+    || `<div class="empty">Nothing on your plate.</div>`;
+  document.getElementById("waiting").innerHTML = waitingList().map(o => {
+    const quiet = o.quietDays != null && o.quietDays >= QUIET_DAYS;
+    const label = o.quietDays == null ? "" : `<span class="chip ${quiet ? "warn" : ""}">${quiet ? "&#9888; " : ""}${o.quietDays}d quiet</span>`;
+    return attentionRow(o, label, o.next_action);
+  }).join("") || `<div class="empty">Nobody owes you anything.</div>`;
+}
+
+function renderBoard() {
+  document.getElementById("board").innerHTML = STAGES.filter(s => s !== "Closed").map(stage => {
+    const cards = active.filter(o => o.stage === stage)
+      .sort((a, b) => (b.lastActivity || "").localeCompare(a.lastActivity || ""));
+    return `<div class="column"><div class="column-head"><span>${esc(stage)}</span><span>${cards.length}</span></div>
+      <div class="column-cards">${cards.map(o => `<button class="card" ${open(o.slug)}>
+        <div class="card-top">${logoHtml(o)}<span class="card-company">${esc(o.company)}</span></div>
+        <div class="card-role">${esc(o.role)}</div>
+        <div class="chips">${modeChip(o)}${o.type === "contract" ? `<span class="chip">Contract</span>` : ""}${confChip(o)}${verifyChip(o)}</div>
+      </button>`).join("")}</div></div>`;
+  }).join("");
+}
+
+const COLUMNS = [
+  { key: "company", label: "Company", get: o => o.company.toLowerCase(),
+    html: o => `<div class="co">${logoHtml(o)}<span>${esc(o.company)}${o.confidential ? `<br>${confChip(o)}` : ""}</span></div>` },
+  { key: "role", label: "Role", cls: "w-role", get: o => o.role.toLowerCase(), html: o => esc(o.role) },
+  { key: "stage", label: "Stage", get: o => STAGES.indexOf(o.stage), html: o => `<span class="nowrap">${esc(o.stage)}</span> ${verifyChip(o)}` },
+  { key: "industry", label: "Industry", get: o => (o.industry || "~").toLowerCase(), html: o => esc(o.industry) },
+  { key: "work_mode", label: "Work mode", get: o => o.work_mode, html: o => modeChip(o) },
+  { key: "area", label: "Area", get: o => (o.neighborhood || o.location || "~").toLowerCase(), html: o => esc(o.neighborhood || o.location) },
+  { key: "gct", label: "From Grand Central", get: o => o.gct_miles ?? 99999, cls: "num w-gct",
+    html: o => `${esc(distanceText(o))}${o.gct_commute ? `<div class="small muted">${esc(o.gct_commute)}</div>` : ""}` },
+  { key: "comp", label: "Pay", cls: "w-pay", get: o => (o.comp_posted || "~"), html: o => esc(o.comp_posted) },
+  { key: "last", label: "Last activity", get: o => o.lastActivity || "", cls: "num nowrap", html: o => esc(fmtDate(o.lastActivity)) },
+  { key: "next", label: "Next step", cls: "w-next", get: o => (o.next_action || "~").toLowerCase(), html: o => esc(o.next_action) },
+  { key: "links", label: "Links", cls: "w-links", get: () => 0, html: o => [
+      o.jd_href ? `<a href="${esc(o.jd_href)}" target="_blank" rel="noopener">Job</a>` : "",
+      o.folder_href ? `<a href="${esc(o.folder_href)}" target="_blank" rel="noopener">Folder</a>` : ""
+    ].filter(Boolean).join(" &middot; ") },
+];
+let sortKey = "stage", sortDir = -1;
+function renderTable() {
+  const q = document.getElementById("f-q").value.trim().toLowerCase();
+  const stage = document.getElementById("f-stage").value, type = document.getElementById("f-type").value;
+  const mode = document.getElementById("f-mode").value, closed = document.getElementById("f-closed").checked;
+  const col = COLUMNS.find(c => c.key === sortKey);
+  const rows = OPPS.filter(o => (closed || !o.closed || stage === "Closed") && (!stage || o.stage === stage) && (!type || o.type === type)
+      && (!mode || o.work_mode === mode) && (!q || o.search.includes(q)))
+    .sort((a, b) => { const x = col.get(a), y = col.get(b); return (x < y ? -1 : x > y ? 1 : 0) * sortDir; });
+  document.getElementById("table-head").innerHTML = COLUMNS.map(c =>
+    `<th data-sort="${c.key}">${esc(c.label)}${c.key === sortKey ? (sortDir > 0 ? " &#9650;" : " &#9660;") : ""}</th>`).join("");
+  document.getElementById("table-body").innerHTML = rows.map(o =>
+    `<tr ${open(o.slug)}>${COLUMNS.map(c => `<td class="${c.cls || ""}">${c.html(o)}</td>`).join("")}</tr>`).join("");
+  document.getElementById("f-count").textContent = `${rows.length} shown`;
+}
+
+function renderHealth() {
+  const steps = STAGES.slice(1, -1);
+  const reached = i => OPPS.filter(o => o.reached >= i).length;
+  const max = Math.max(1, ...steps.map((_, i) => reached(i + 1)));
+  document.getElementById("funnel").innerHTML = steps.map((s, i) => {
+    const n = reached(i + 1);
+    return `<div class="funnel-row" title="${esc(s)}: ${n} reached this stage"><span class="small">${esc(s)}</span>
+      <div class="funnel-track"><div class="funnel-bar" style="width:${(n / max) * 100}%"></div></div>
+      <span class="num small" style="text-align:right">${n}</span></div>`;
+  }).join("");
+
+  const groups = {};
+  OPPS.forEach(o => { const k = o.source || "Other"; (groups[k] = groups[k] || []).push(o); });
+  const screen = STAGES.indexOf("Screening");
+  const rows = Object.entries(groups).sort((a, b) => b[1].length - a[1].length);
+  document.getElementById("sources").innerHTML = `<thead><tr><th>Source</th><th>Total</th><th>Applied+</th><th>Talking</th></tr></thead><tbody>` +
+    rows.map(([k, list]) => `<tr><td>${esc(k)}</td><td>${list.length}</td><td>${list.filter(o => o.reached >= 1).length}</td><td>${list.filter(o => o.reached >= screen).length}</td></tr>`).join("") + `</tbody>`;
+
+  const feedback = OPPS.flatMap(o => o.events.filter(e => e.kind === "feedback").map(e => ({ o, e })))
+    .sort((a, b) => b.e.date.localeCompare(a.e.date));
+  document.getElementById("feedback").innerHTML = feedback.map(({ o, e }) =>
+    `<div class="feedback"><button class="link-btn" ${open(o.slug)}><strong>${esc(o.company)}</strong></button> <span class="muted small">${esc(fmtDate(e.date))}</span><br>${esc(e.title)}</div>`).join("")
+    || `<div class="empty">None recorded.</div>`;
+}
+
+function renderChecks() {
+  const row = (o, text) => `<li><button class="link-btn" ${open(o.slug)}>${esc(o.company)}</button>: ${esc(text)}</li>`;
+  const noOffice = active.filter(o => o.work_mode !== "Remote" && o.work_mode !== "Unknown" && o.gct_miles == null);
+  const noJd = active.filter(o => !o.jd_href);
+  const unknownMode = active.filter(o => o.work_mode === "Unknown");
+  const block = (title, items) => items.length ? `<div><h3>${esc(title)} (${items.length})</h3><ul class="small">${items.join("")}</ul></div>` : "";
+  document.getElementById("checks").innerHTML = [
+    block("Inferred, please confirm", OPPS.filter(o => o.needs_verify).map(o => row(o, o.needs_verify))),
+    block("Office location unknown", noOffice.map(o => row(o, o.location || "No location"))),
+    block("Work mode unknown", unknownMode.map(o => row(o, o.role))),
+    block("No job link", noJd.map(o => row(o, o.role))),
+    block("Folders with no record", DATA.unmatched_folders.map(f => `<li>${esc(f)}</li>`)),
+    block("Records with a missing folder", DATA.broken_folders.map(f => `<li>${esc(f)}</li>`)),
+  ].join("") || `<div class="empty">Nothing to check.</div>`;
+}
+
+let lastFocus = null;
+function openDrawer(slug) {
+  const o = BY_SLUG[slug];
+  if (!o) return;
+  lastFocus = document.activeElement;
+  const fact = (k, v) => v ? `<dt>${esc(k)}</dt><dd>${v}</dd>` : "";
+  const dist = o.gct_miles != null ? `${o.gct_miles} mi in a straight line${o.gct_commute ? `<br><span class="muted small">${esc(o.gct_commute)}</span>` : ""}` : "";
+  const links = [
+    o.jd_href ? `<a href="${esc(o.jd_href)}" target="_blank" rel="noopener">Job description</a>` : "",
+    o.folder_href ? `<a href="${esc(o.folder_href)}" target="_blank" rel="noopener">Open folder</a>` : "",
+  ].filter(Boolean).join(" &middot; ");
+  const events = [...o.events].reverse();
+  const drawer = document.getElementById("drawer");
+  drawer.innerHTML = `<div class="drawer-head">${logoHtml(o)}<div><h2>${esc(o.company)}</h2><div class="muted">${esc(o.role)}</div>
+      <div class="chips" style="margin-top:6px"><span class="chip">${esc(o.stage)}</span>${modeChip(o)}${o.type === "contract" ? `<span class="chip">Contract</span>` : ""}${confChip(o)}</div></div>
+      <button class="close" id="drawer-close" aria-label="Close">&times;</button></div>
+    ${o.next_action ? `<div class="callout next"><strong>${o.next_owner === "me" ? "Your move" : "Waiting on them"}${o.next_date ? ", " + esc(fmtDate(o.next_date)) : ""}:</strong> ${esc(o.next_action)}</div>` : ""}
+    ${o.needs_verify ? `<div class="callout warn">&#9888; Please check: ${esc(o.needs_verify)}</div>` : ""}
+    ${o.status_note ? `<div class="drawer-section">${esc(o.status_note)}</div>` : ""}
+    <div class="drawer-section"><dl class="facts">
+      ${fact("Links", links)}
+      ${fact("Via", esc(o.via))}
+      ${fact("Industry", esc(o.industry))}
+      ${fact("Work mode", esc([o.work_mode, o.work_detail].filter(Boolean).join(", ")))}
+      ${fact("Location", esc(o.location))}
+      ${fact("Neighborhood", esc(o.neighborhood))}
+      ${fact("Address", esc(o.address))}
+      ${fact("From Grand Central", dist)}
+      ${fact("Pay", esc(o.comp_posted))}
+      ${fact("Your number", esc(o.comp_target))}
+    </dl></div>
+    ${o.contacts.length ? `<div class="drawer-section"><h3>People</h3><dl class="facts">${o.contacts.map(c => {
+      const parts = [c.title, c.org].filter(Boolean).map(esc).join(", ");
+      const contactLinks = [c.email ? `<a href="mailto:${esc(c.email)}">${esc(c.email)}</a>` : "", c.linkedin ? `<a href="${esc(c.linkedin)}" target="_blank" rel="noopener">LinkedIn</a>` : ""].filter(Boolean).join(" &middot; ");
+      return `<dt>${esc(c.role || "Contact")}</dt><dd><strong>${esc(c.name)}</strong>${parts ? `<br><span class="small">${parts}</span>` : ""}${contactLinks ? `<br><span class="small">${contactLinks}</span>` : ""}</dd>`;
+    }).join("")}</dl></div>` : ""}
+    ${events.length ? `<div class="drawer-section"><h3>Timeline</h3><ul class="timeline">${events.map(e => `<li><span class="small ${e.date > TODAY ? "future" : "muted"}">${esc(fmtDate(e.date))}</span>
+      <div><div class="${e.date > TODAY ? "future" : ""}">${esc(e.title)}${e.time ? ` <span class="small muted">${esc(e.time)}</span>` : ""}</div>${e.detail ? `<div class="small muted">${esc(e.detail)}</div>` : ""}${e.source ? `<div class="small muted">Source: ${esc(e.source)}</div>` : ""}</div></li>`).join("")}</ul></div>` : ""}
+    ${o.docs.length ? `<div class="drawer-section"><h3>Documents</h3><ul class="docs small">${o.docs.map(d => `<li><a href="${esc(d.href)}" target="_blank" rel="noopener">${esc(d.name)}</a></li>`).join("")}</ul></div>` : ""}`;
+  drawer.classList.add("open");
+  document.getElementById("drawer-bg").classList.add("open");
+  drawer.scrollTop = 0;
+  document.getElementById("drawer-close").focus();
+}
+function closeDrawer() {
+  document.getElementById("drawer").classList.remove("open");
+  document.getElementById("drawer-bg").classList.remove("open");
+  if (lastFocus) lastFocus.focus();
+}
+
+document.addEventListener("click", e => {
+  if (e.target.closest("a")) return;
+  if (e.target.closest("#drawer-close") || e.target.id === "drawer-bg") return closeDrawer();
+  const th = e.target.closest("th[data-sort]");
+  if (th) {
+    if (sortKey === th.dataset.sort) sortDir *= -1; else { sortKey = th.dataset.sort; sortDir = 1; }
+    return renderTable();
+  }
+  const target = e.target.closest("[data-open]");
+  if (target) openDrawer(target.dataset.open);
+});
+document.addEventListener("keydown", e => { if (e.key === "Escape") closeDrawer(); });
+["f-q", "f-stage", "f-type", "f-mode", "f-closed"].forEach(id => {
+  const el = document.getElementById(id);
+  el.addEventListener(el.type === "search" ? "input" : "change", renderTable);
+});
+document.getElementById("f-stage").innerHTML = `<option value="">Any stage</option>` + STAGES.map(s => `<option>${esc(s)}</option>`).join("");
+document.getElementById("built").textContent = `Data last built ${DATA.built}`;
+
+renderTiles(); renderAttention(); renderBoard(); renderTable(); renderHealth(); renderChecks();
+</script>
+</body>
+</html>

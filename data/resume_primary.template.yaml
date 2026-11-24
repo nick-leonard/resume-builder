@@ -1,0 +1,60 @@
+# Template for primary resume content. Contact details and education belong
+# in data/resume_static.template.yaml, not in a full-resume YAML file.
+
+headline: "Your Headline | Title One | Title Two"
+
+summary_bullets:
+  - id: "sum_one"
+    text: >-
+      A punchy summary line establishing seniority, years, and the domains you operate
+      in.
+  - id: "sum_two"
+    text: >-
+      A second summary line leading with your strongest, most quantified accomplishment.
+
+experience:
+  - company: "Most Recent Company"
+    location: "City, ST"
+    positions:
+      - title_lines:
+          - "Senior Title (scope / team size)"
+          - "Prior Title at same company"
+        dates:
+          - "Mon YYYY - Present"
+          - "Mon YYYY - Mon YYYY"
+        summary:
+          id: "recent_summary"
+          text: >-
+            One or two sentences of role context: scope, org, and what you owned. LLM
+            may rewrite this for JD alignment.
+        bullets:
+          - id: "recent_bullet_1"
+            text: >-
+              An accomplishment bullet with a concrete metric and the technologies
+              involved.
+          - id: "recent_bullet_2"
+            text: >-
+              Another accomplishment. Keep every number and noun; the LLM only
+              compresses and reorders, never invents.
+
+  - company: "Early Career Company"
+    location: null
+    positions:
+      - title_lines:
+          - "Job Title"
+        dates:
+          - "Mon YYYY - Mon YYYY"
+        summary: null
+        bullets: []
+
+skills:
+  ai:
+    - "Example AI Tool"
+  languages:
+    - "Python (libraries, in parens)"
+    - "SQL"
+  tools:
+    - "Example Tool A"
+    - "Example Tool B"
+  architecture_patterns:
+    - "Example pattern"
