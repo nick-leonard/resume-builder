@@ -134,7 +134,7 @@ def canonical_yaml(data, source_path)
     lines << "# in data/resume_static.template.yaml, not in a full-resume YAML file."
     lines << ""
   elsif File.basename(source_path).start_with?("resume_gdoc_")
-    lines << "# Snapshot extracted from the Google Doc Nick_Leonard_Resume."
+    lines << "# Snapshot extracted from the source Google Doc resume."
     lines << "# Contact details and education intentionally omitted."
     lines << ""
   end

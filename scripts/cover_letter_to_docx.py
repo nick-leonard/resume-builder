@@ -1,16 +1,17 @@
 #!/usr/bin/env python3
-"""Render a cover letter written in Markdown into template/Nick_Leonard_Cover_Letter.docx.
+"""Render a cover letter written in Markdown into template/<prefix>_Cover_Letter.docx.
 
     python scripts/cover_letter_to_docx.py COVER_LETTER.md [OUTPUT.docx] [--pdf]
 
 The header (name, headline, contact links) and footer come from the template.
 The headline is replaced with the tailored resume's headline when a
-Nick_Leonard_Resume.yaml sits beside the letter, so letter and resume match.
+<prefix>_Resume.yaml sits beside the letter, so letter and resume match.
 Leading header lines in the Markdown (bold/italic name and title, the contact
 line) are skipped; every later paragraph becomes a body paragraph. A
 "Subject:" paragraph gets a bold label and a blank line above and below.
 **phrase** bolds a keyword, as on the resume, at most one per paragraph.
-Output defaults to Nick_Leonard_Cover_Letter.docx beside the Markdown file.
+Output defaults to <prefix>_Cover_Letter.docx beside the Markdown file. The
+prefix comes from data/resume_static.yaml (see scripts/identity.py).
 --pdf also converts it with headless LibreOffice.
 """
 
@@ -24,11 +25,11 @@ import yaml
 from docx import Document
 from docx.shared import Pt
 
-from resume_yaml_to_docx import ROOT, convert_to_pdf, set_run, text_runs
+from resume_yaml_to_docx import DISPLAY_NAME, FILE_PREFIX, RESUME_BASENAME, ROOT, convert_to_pdf, set_run, text_runs
 
-TEMPLATE = ROOT / "template" / "Nick_Leonard_Cover_Letter.docx"
-OUTPUT_NAME = "Nick_Leonard_Cover_Letter.docx"
-DOC_TITLE = "Nick Leonard Cover Letter"
+TEMPLATE = ROOT / "template" / f"{FILE_PREFIX}_Cover_Letter.docx"
+OUTPUT_NAME = f"{FILE_PREFIX}_Cover_Letter.docx"
+DOC_TITLE = f"{DISPLAY_NAME} Cover Letter"
 
 BODY_PT = 11
 PARA_GAP = 10  # pt after each body paragraph
@@ -54,7 +55,7 @@ def render(md_path: Path, out: Path) -> None:
         if p.style.name == "List Bullet" and not p.text.strip():
             p._element.getparent().remove(p._element)
 
-    resume = md_path.parent / "Nick_Leonard_Resume.yaml"
+    resume = md_path.parent / f"{RESUME_BASENAME}.yaml"
     if resume.exists():
         headline = yaml.safe_load(resume.read_text())["headline"]
         runs = doc.paragraphs[1].runs

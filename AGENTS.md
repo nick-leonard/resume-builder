@@ -7,7 +7,7 @@ Codex and Antigravity read `AGENTS.md` directly; `CLAUDE.md` in this directory i
 ## What this is
 
 A small personal tool (not a public product) that generates a single tailored
-resume (.docx + PDF) for one job application. It combines Nick's primary resume
+resume (.docx + PDF) for one job application. It combines the candidate's primary resume
 content (YAML, source of truth) with a job description via a structured
 tailoring plan, then renders the resume from that primary content only — the LLM can only
 select/reorder/lightly-rewrite existing bullets, never invent content. See
@@ -15,34 +15,34 @@ select/reorder/lightly-rewrite existing bullets, never invent content. See
 `docs/Resume_Tailoring_Workflow_and_Prompt.md` for the interactive
 cover-letter workflow (separate, manual process, not code-driven).
 
-This folder is a public git repository (github.com/nick-leonard/resume-builder).
+This folder is a public git repository.
 `.gitignore` is an allowlist because the folder also holds private data
 (applications, story bank, writing samples, real resume YAML): never add a
-private path to it, and commit or push only when Nick asks.
+private path to it, and commit or push only when the user asks.
 
 ## Tailoring a resume: required workflow for every agent
 
-When Nick asks for a resume tailored to a job, produce it through
+When the user asks for a resume tailored to a job, produce it through
 `generate_resume.py`, whichever agent you are. Never write a tailored
-`Nick_Leonard_Resume.yaml`, `.docx` or `.pdf` by hand, and never edit
+`<Name>_Resume.yaml`, `.docx` or `.pdf` by hand, and never edit
 `data/resume_primary.yaml` or `prompts/tailoring_prompt.md` to get a plan past
 validation.
 
-1. **JD:** if Nick pasted the job description, save it to a text file first.
+1. **JD:** if the user pasted the job description, save it to a text file first.
 2. **Plan**, in one of two modes:
    - **API mode (default):** `.venv/bin/python generate_resume.py --jd JD
-     --company "Company" --role "Role"`. Add `--model ID` only if Nick names a
+     --company "Company" --role "Role"`. Add `--model ID` only if the user names a
      model. Don't pass `--yes`: without a terminal the script saves
      `tailoring.yaml`, prints the review and stops before rendering.
-   - **Agent mode**, when Nick says not to use the API or to use your own
+   - **Agent mode**, when the user says not to use the API or to use your own
      model: run the same command with `--prepare`, read the
      `tailoring_request.md` it writes into the application folder, and write
      `tailoring.yaml` there yourself, following that file exactly.
-3. **Review:** show Nick what the script prints: the fit assessment, any
+3. **Review:** show the user what the script prints: the fit assessment, any
    headline change, every rewrite before/after, the bolded highlights, and the
    JD key-term coverage (especially terms marked missing).
 4. **Render:** `.venv/bin/python generate_resume.py --from-plan
-   "applications/<Company> - <Role>/tailoring.yaml"` (API mode: after Nick
+   "applications/<Company> - <Role>/tailoring.yaml"` (API mode: after the user
    approves). To change the result, edit `tailoring.yaml` and run it again.
 5. **Validation errors** mean the plan is wrong: fix `tailoring.yaml`, not the
    data.
@@ -59,7 +59,7 @@ When a session reveals a change (application sent, interview booked, feedback,
 new next step, a new opportunity), record it with `scripts/tracker.py`, which
 rebuilds the page on every write. Check `list` for slugs first. Don't guess: if
 a value is inferred, say what to confirm in `needs_verify`, and clear that field
-once Nick confirms it.
+once the user confirms it.
 
 ```bash
 .venv/bin/python scripts/tracker.py list
@@ -106,11 +106,11 @@ brew install --cask libreoffice   # converts the .docx to PDF (headless)
 # Render any full-resume YAML (Gold Standard, or a hand-edited tailored one)
 # to .docx, and with --pdf also to .pdf via headless LibreOffice.
 .venv/bin/python scripts/resume_yaml_to_docx.py \
-    "applications/_Gold Standard/Nick_Leonard_Resume.yaml" --pdf
+    "applications/_Gold Standard/<Name>_Resume.yaml" --pdf
 
-# Render an application's cover_letter.md into template/Nick_Leonard_Cover_Letter.docx
+# Render an application's cover_letter.md into template/<Name>_Cover_Letter.docx
 # (header and footer from the template, headline from the tailored resume YAML
-# beside it); writes Nick_Leonard_Cover_Letter.docx, and with --pdf a .pdf too.
+# beside it); writes <Name>_Cover_Letter.docx, and with --pdf a .pdf too.
 # **phrase** in the Markdown bolds a JD keyword, at most one per paragraph.
 .venv/bin/python scripts/cover_letter_to_docx.py \
     "applications/Acme Corp - VP of Engineering/cover_letter.md" --pdf
@@ -165,7 +165,7 @@ rendering lives in `scripts/resume_yaml_to_docx.py`, which it imports:
    at most one per bullet, `MAX_HIGHLIGHTS` total; the markers only bold text
    that is already there, and `resume_yaml_to_docx.text_runs` renders them as
    bold runs (they can be added or removed by hand in the YAML). The result
-   is written as `Nick_Leonard_Resume.yaml` (normalized; a differing previous version is
+   is written as `<Name>_Resume.yaml` (normalized; a differing previous version is
    kept as `.yaml.bak`), then render `.docx` with `resume_yaml_to_docx.render`
    and the PDF with its `convert_to_pdf` (headless LibreOffice). Document
    title/author metadata is set for ATS-safety (see the design doc for the
@@ -176,7 +176,8 @@ rendering lives in `scripts/resume_yaml_to_docx.py`, which it imports:
 
 A run writes to `applications/<Company> - <Role>/`: `job_description.txt`,
 `tailoring.yaml` (plus `tailoring_request.md` in agent mode), and the tailored
-`Nick_Leonard_Resume.yaml`, `.docx` and `.pdf`. That directory is gitignored
+`<Name>_Resume.yaml`, `.docx` and `.pdf` (`<Name>` comes from
+`data/resume_static.yaml`, see `scripts/identity.py`). That directory is gitignored
 (contains real application content).
 
 ### Data model

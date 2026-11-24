@@ -12,3 +12,9 @@ education:
     location: City, ST
     degree: Degree, Field
     date: Mon YYYY
+
+# Optional. Output filenames (<prefix>_Resume.pdf, <prefix>_Cover_Letter.docx) and
+# document titles. Defaults to contact.name.
+files:
+  prefix: Jane_Doe
+  display_name: Jane Doe

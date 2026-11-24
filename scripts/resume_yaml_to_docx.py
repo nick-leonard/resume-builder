@@ -32,8 +32,11 @@ SOFFICE_APP = Path("/Applications/LibreOffice.app/Contents/MacOS/soffice")
 # to Liberation Sans); linking the files into its profile's fonts dir fixes that.
 SYSTEM_FONTS = Path("/System/Library/Fonts/Supplemental")
 
+
+from identity import FILE_PREFIX, DISPLAY_NAME, RESUME_BASENAME  # noqa: E402  (name lives in resume_static.yaml)
+
 # Document metadata, carried into the PDF (see ATS-safe rules in the design doc).
-DOC_TITLE = "Nick Leonard Resume"
+DOC_TITLE = f"{DISPLAY_NAME} Resume"
 
 FONT = "Arial"
 BODY_PT = 10.25

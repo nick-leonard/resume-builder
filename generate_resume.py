@@ -54,7 +54,8 @@ NORMALIZER = ROOT / "scripts" / "normalize_resume_yaml.rb"
 
 MODEL = "claude-sonnet-5-5"  # default; override with RESUME_MODEL in .env or --model
 
-RESUME_BASENAME = "Nick_Leonard_Resume"  # .yaml / .docx / .pdf in the application folder
+sys.path.insert(0, str(ROOT / "scripts"))
+from identity import RESUME_BASENAME  # noqa: E402  <prefix>_Resume, from resume_static.yaml
 PLAN_FILENAME = "tailoring.yaml"
 REQUEST_FILENAME = "tailoring_request.md"
 

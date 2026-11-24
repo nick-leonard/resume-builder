@@ -8,7 +8,7 @@ This is a personal tool for one user. Keep the code simple — no frameworks, no
 
 ## Why this approach
 
-- One primary YAML file holds the superset of every bullet, role, and skill Nick has ever wanted to use.
+- One primary YAML file holds the superset of every bullet, role, and skill the candidate has ever wanted to use.
 - A single Claude API call per application reads the whole primary file + the JD and returns a structured "tailoring plan": which summary variant, which bullets per role, and rewritten phrasing where it improves JD alignment.
 - The script assembles the PDF **only from content in the primary file** (substituting LLM rewrites where provided), so fabrication is structurally impossible for selection and reviewable for rewrites.
 - Avoids manually re-editing a document for every application.
@@ -21,7 +21,7 @@ resume-builder/
 │   ├── resume-tailoring-system-design.md      # this file
 │   └── Resume_Tailoring_Workflow_and_Prompt.md # interactive (Claude Desktop) workflow + standing framings
 ├── template/
-│   └── Nick_Leonard_Resume.pdf                # current live resume — the visual style reference AND content source
+│   └── <Name>_Resume.pdf                # current live resume — the visual style reference AND content source
 ├── prompts/
 │   └── tailoring_prompt.md                    # LLM prompt text, loaded by the script (checked in — contains no PII)
 ├── data/
@@ -33,8 +33,8 @@ resume-builder/
 │   └── <Job Title> - <Company Name>/
 │       ├── job_description.txt                # the JD used for this application
 │       ├── tailoring.yaml                     # the LLM's tailoring plan (selection + rewrites) — audit trail & re-render input
-│       ├── Nick_Leonard_Resume.pdf            # generated output
-│       ├── Nick_Leonard_Cover_Letter.pdf      # created via the Desktop workflow, saved here manually (out of scope for the script)
+│       ├── <Name>_Resume.pdf            # generated output
+│       ├── <Name>_Cover_Letter.pdf      # created via the Desktop workflow, saved here manually (out of scope for the script)
 │       └── outreach.md                        # optional: LinkedIn message / recruiter email drafts
 ├── generate_resume.py                         # the entire tool — single script
 ├── .gitignore
@@ -44,7 +44,7 @@ resume-builder/
 ### Folder & naming conventions (important)
 
 - Each application gets its own folder named **`<Company Name> - <Job Title>`** (e.g. `applications/Acme Corp - VP of Engineering/`).
-- The resume and cover letter filenames are **always** `Nick_Leonard_Resume.pdf` and `Nick_Leonard_Cover_Letter.pdf` — no company name, no version suffix. This keeps submitted filenames clean and does not hint at a tailoring process. The parent folder carries the company/role identity.
+- The resume and cover letter filenames are **always** `<Name>_Resume.pdf` and `<Name>_Cover_Letter.pdf` — no company name, no version suffix. This keeps submitted filenames clean and does not hint at a tailoring process. The parent folder carries the company/role identity.
 - `.gitignore` must cover: `data/resume_primary.yaml`, `data/resume_static.yaml`, `applications/`. The `*.template.yaml` files are checked in so the repo can eventually be published (blog article planned) without leaking PII.
 
 ## Data files
@@ -101,9 +101,9 @@ experience:
   # minimal bullets.
 ```
 
-**Content rules when building this file** (from `template/Nick_Leonard_Resume.pdf`):
+**Content rules when building this file** (from `template/<Name>_Resume.pdf`):
 
-- The template PDF is the authoritative, up-to-date content source. Extract its content verbatim as the baseline, then add historical superset bullets from older resume versions as Nick provides them.
+- The template PDF is the authoritative, up-to-date content source. Extract its content verbatim as the baseline, then add historical superset bullets from older resume versions as the candidate provides them.
 - Honor the **standing framings** in `docs/Resume_Tailoring_Workflow_and_Prompt.md` (Part 2, "My standing framings") — xNilio split title lines, Independent Consulting entry, J.Crew capex phrasing, Snowflake cost framing, career-break line. These are already reflected in the template PDF; do not contradict them.
 
 ### `data/resume_static.yaml` — never sent to the LLM
@@ -112,7 +112,7 @@ Constant content merged in at render time only:
 
 ```yaml
 contact:
-  name: Nicholas Leonard
+  name: Jane Doe
   phone: "..."
   email: "..."
   linkedin: "..."
@@ -133,7 +133,7 @@ The checked-in `resume_static.template.yaml` has the same structure with placeho
 
 > **Update 2026-10-27: rendering and plan sources changed.** WeasyPrint and the
 > HTML/CSS template are gone. The plan is applied to primary content as a
-> tailored `Nick_Leonard_Resume.yaml`, rendered to `.docx` by
+> tailored `<Name>_Resume.yaml`, rendered to `.docx` by
 > `scripts/resume_yaml_to_docx.py`, then converted to PDF with headless
 > LibreOffice. That is the same path as the Gold Standard, and it carries the
 > ATS rules below (title/author metadata, contact info in the body). The plan
@@ -183,7 +183,7 @@ python generate_resume.py --from-plan "applications/Acme Corp - VP of Engineerin
    - A per-bullet **before → after diff** for every rewrite, so every changed word gets human eyes before anything is generated.
    - Prompt `Proceed? [y/N]` (skippable with `--yes`).
 5. **Create the application folder** `applications/<role> - <company>/`, copy the JD in as `job_description.txt`, and write the plan as `tailoring.yaml`.
-6. **Render**: merge the plan with `resume_primary.yaml` content and `resume_static.yaml` (contact/education), build HTML from the hardcoded template string, render with `weasyprint` to `Nick_Leonard_Resume.pdf` in the application folder.
+6. **Render**: merge the plan with `resume_primary.yaml` content and `resume_static.yaml` (contact/education), build HTML from the hardcoded template string, render with `weasyprint` to `<Name>_Resume.pdf` in the application folder.
 
 ### Structured output schema (Pydantic — copy verbatim)
 
@@ -248,12 +248,12 @@ required structured format.
 
 The HTML/CSS template inside `generate_resume.py` must:
 
-- **Visually match** `template/Nick_Leonard_Resume.pdf` — same fonts, spacing, section order, and heading treatment. Iterate with `--from-plan` re-renders until side-by-side comparison is close.
+- **Visually match** `template/<Name>_Resume.pdf` — same fonts, spacing, section order, and heading treatment. Iterate with `--from-plan` re-renders until side-by-side comparison is close.
 - Be **single column**, real selectable text throughout, standard section headings ("Experience", "Skills", "Education").
 - Put **contact info in the document body** — never in a PDF header/footer region.
 - Use **no tables, no text boxes, no images** for content layout. Standard font (match the template's).
 - Use plain hyphen/ASCII bullets — no exotic unicode bullet glyphs.
-- Set **PDF metadata**: document title `Nick Leonard Resume`, author `Nicholas Leonard` (via HTML `<title>`/meta — weasyprint carries these into the PDF). No "Copy of..." titles, no leftover hyperlink artifacts.
+- Set **PDF metadata**: document title `<Name> Resume`, author `Jane Doe` (via HTML `<title>`/meta — weasyprint carries these into the PDF). No "Copy of..." titles, no leftover hyperlink artifacts.
 
 ## Resolved design decisions
 
@@ -261,10 +261,10 @@ Previously open questions — all decided; the builder makes no judgment calls h
 
 1. **Matching approach:** single LLM call (`claude-opus-4-8`, structured output). No keyword/tag scoring. Tags are removed from the schema entirely.
 2. **Summary variant selection:** chosen by the LLM in the tailoring plan.
-3. **Styling:** hardcoded HTML/CSS template string in `generate_resume.py`, visually replicating `template/Nick_Leonard_Resume.pdf`. No `templates/` directory, no style config file.
+3. **Styling:** hardcoded HTML/CSS template string in `generate_resume.py`, visually replicating `template/<Name>_Resume.pdf`. No `templates/` directory, no style config file.
 4. **Output format:** PDF via `weasyprint`. (DOCX is a possible future addition; nothing in the design should preclude it, but do not build it now.)
 5. **Contact & education:** static, in `data/resume_static.yaml`, merged at render time, never sent to the LLM.
-6. **Page length:** not enforced by code. The prompt's bullet-count guidance plus human review keeps it ~2 pages; Nick eyeballs the output.
+6. **Page length:** not enforced by code. The prompt's bullet-count guidance plus human review keeps it ~2 pages; the candidate eyeballs the output.
 
 ## Out of scope (do not build)
 
@@ -275,8 +275,8 @@ Previously open questions — all decided; the builder makes no judgment calls h
 ## Build steps (for the implementing model, in order)
 
 1. Create `.gitignore` (`data/resume_primary.yaml`, `data/resume_static.yaml`, `applications/`) and `requirements.txt`.
-2. Build `data/resume_primary.yaml` and `data/resume_static.yaml` by extracting content from `template/Nick_Leonard_Resume.pdf` (read it directly — it is text-based). Honor the standing framings in `docs/Resume_Tailoring_Workflow_and_Prompt.md`. Ask Nick for historical superset bullets per role after the baseline is in place. Create the two anonymized `*.template.yaml` files alongside.
+2. Build `data/resume_primary.yaml` and `data/resume_static.yaml` by extracting content from `template/<Name>_Resume.pdf` (read it directly — it is text-based). Honor the standing framings in `docs/Resume_Tailoring_Workflow_and_Prompt.md`. Ask the candidate for historical superset bullets per role after the baseline is in place. Create the two anonymized `*.template.yaml` files alongside.
 3. Create `prompts/tailoring_prompt.md` from the skeleton above.
 4. Build `generate_resume.py`: load → LLM call (`messages.parse`) → validate → review gate → folder creation → weasyprint render. Include `--from-plan` and `--yes` flags.
-5. Iterate on the HTML/CSS until the rendered PDF visually matches `template/Nick_Leonard_Resume.pdf` (use `--from-plan` to re-render without LLM calls).
-6. Test end-to-end against 2–3 real job descriptions Nick is applying to; review diffs and fit assessments together.
+5. Iterate on the HTML/CSS until the rendered PDF visually matches `template/<Name>_Resume.pdf` (use `--from-plan` to re-render without LLM calls).
+6. Test end-to-end against 2–3 real job descriptions the candidate is applying to; review diffs and fit assessments together.

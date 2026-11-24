@@ -1,9 +1,13 @@
 # Resume Builder
 
-A small personal tool that generates a tailored resume (docx + PDF) for a single job
-application from one primary source of truth plus a job description. One Claude
-call selects and lightly rewrites content; a Python script renders the resume from
-your own content only, so the model can't fabricate its way into the document.
+A small personal tool for tailoring one resume to one job, so the hiring team can
+see quickly how my experience lines up with what they need. It doesn't apply to
+jobs, fill in forms or send anything anywhere: every resume it produces is reviewed
+and sent by a person. Claude proposes a plan (which of my existing bullets to use,
+in what order, with light rewrites), the script prints that plan for review,
+including every before-and-after rewrite and which of the job's key terms the resume
+covers, and nothing is rendered until I approve it. The resume (docx + PDF) is built
+from my own source content only, so the model can't fabricate its way into it.
 
 See [`docs/resume-tailoring-system-design.md`](docs/resume-tailoring-system-design.md)
 for the full design and [`docs/Resume_Tailoring_Workflow_and_Prompt.md`](docs/Resume_Tailoring_Workflow_and_Prompt.md)
@@ -52,7 +56,7 @@ one of two places:
 
 A run fills `applications/<Company> - <Role>/` with `job_description.txt`,
 `tailoring.yaml` (the plan / audit trail), and the tailored
-`Nick_Leonard_Resume.yaml`, `.docx` and `.pdf`. API mode saves the plan before
+`<Name>_Resume.yaml`, `.docx` and `.pdf`. API mode saves the plan before
 asking to render; without a terminal (or if you decline) it stops there, and
 `--from-plan` renders it later. `--yes` skips the confirmation.
 
@@ -60,14 +64,14 @@ The review also shows which phrases will be bold (up to 8, at most one per
 bullet, always text already in the resume) and how many of the JD's key terms
 the resume covers, including the ones it's missing.
 
-To hand-edit a tailored resume, edit its `Nick_Leonard_Resume.yaml` (wrap a
+To hand-edit a tailored resume, edit its `<Name>_Resume.yaml` (wrap a
 phrase in `**...**` to bold it, or remove the markers to unbold it) and
 re-render just that file. Re-running `--from-plan` would rebuild the YAML from
-the plan (the edited one is kept as `Nick_Leonard_Resume.yaml.bak`).
+the plan (the edited one is kept as `<Name>_Resume.yaml.bak`).
 
 ```bash
 .venv/bin/python scripts/resume_yaml_to_docx.py \
-    "applications/Acme Corp - VP of Engineering/Nick_Leonard_Resume.yaml" --pdf
+    "applications/Acme Corp - VP of Engineering/<Name>_Resume.yaml" --pdf
 ```
 
 ## Import a final edited PDF
@@ -77,7 +81,7 @@ PDF and rebuild its comparable YAML snapshot with:
 
 ```bash
 .venv/bin/python scripts/resume_pdf_to_yaml.py \
-    "applications/Acme/Nick_Leonard_Resume.pdf"
+    "applications/Acme/<Name>_Resume.pdf"
 ```
 
 The default output is beside the PDF with the same basename and a `.yaml`
@@ -110,5 +114,8 @@ Export the Google Doc to PDF before running the importer.
   history the model must never soften or "fix": exact budget figures, title
   arcs, date overlaps. `generate_resume.py` appends it to the tailoring prompt.
 - **Cover letter template.** `scripts/cover_letter_to_docx.py` fills a Word
-  template with your letterhead at `template/Nick_Leonard_Cover_Letter.docx`
+  template with your letterhead at `template/<Name>_Cover_Letter.docx`
   (gitignored, since it carries contact details). Supply your own there.
+- **Your name** never appears in the code. Output filenames (`<Name>_Resume.pdf`)
+  and document titles come from `data/resume_static.yaml`: an optional
+  `files: {prefix, display_name}` block, otherwise `contact.name`.
