@@ -15,7 +15,10 @@ select/reorder/lightly-rewrite existing bullets, never invent content. See
 `docs/Resume_Tailoring_Workflow_and_Prompt.md` for the interactive
 cover-letter workflow (separate, manual process, not code-driven).
 
-This is not a git repository (`git` commands will not work here).
+This folder is a public git repository (github.com/nick-leonard/resume-builder).
+`.gitignore` is an allowlist because the folder also holds private data
+(applications, story bank, writing samples, real resume YAML): never add a
+private path to it, and commit or push only when Nick asks.
 
 ## Tailoring a resume: required workflow for every agent
 
